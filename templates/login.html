@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Sentinel AI Campus Surveillance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #090d16;
+        }
+        .login-box {
+            width: 100%;
+            max-width: 480px;
+            padding: 2.5rem;
+        }
+        .role-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition: var(--transition-smooth);
+            color: var(--text-muted);
+            border: 1px solid transparent;
+        }
+        .role-tab.active {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--color-primary);
+            border-color: var(--glass-border-glow);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 1.25rem;
+            outline: none;
+        }
+        .form-control:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 10px var(--color-primary-glow);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box glass-panel">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 56px; height: 56px; font-size: 1.8rem;">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff;">SENTINEL AI</h2>
+            <p style="color: var(--color-primary); font-size: 0.85rem; font-weight: 600;">Campus Violence Detection & Alert System</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background: rgba(244, 63, 94, 0.15); border: 1px solid var(--color-danger); color: #fda4af; font-size: 0.85rem; text-align: center;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Role Selector Tabs -->
+        <div style="display: flex; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.4rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+            <div id="tabAdmin" class="role-tab active" onclick="setRole('admin')">
+                <i class="bi bi-shield-check"></i> Main Admin
+            </div>
+            <div id="tabHOD" class="role-tab" onclick="setRole('hod')">
+                <i class="bi bi-person-badge"></i> HOD / Authority
+            </div>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST">
+            <input type="hidden" id="portalRoleInput" name="portal_role" value="admin">
+
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem;">Username</label>
+            <input type="text" id="usernameInput" name="username" class="form-control" placeholder="Enter username" required value="admin">
+
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem;">Password</label>
+            <input type="password" id="passwordInput" name="password" class="form-control" placeholder="Enter password" required value="admin123">
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 0.5rem;">
+                <i class="bi bi-box-arrow-in-right"></i> Authenticate System Login
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); text-align: center;">
+            <p style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.75rem;">QUICK DEMO ONE-CLICK LOGINS:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center;">
+                <button type="button" onclick="fillDemo('admin', 'admin123', 'admin')" class="badge badge-info" style="cursor: pointer; border: none;">Admin (College-Wide)</button>
+                <button type="button" onclick="fillDemo('hod_aids', 'hod123', 'hod')" class="badge badge-danger" style="cursor: pointer; border: none;">HOD AI & DS (4 Classes)</button>
+                <button type="button" onclick="fillDemo('hod_cse', 'hod123', 'hod')" class="badge badge-success" style="cursor: pointer; border: none;">HOD CSE</button>
+                <button type="button" onclick="fillDemo('hod_ece', 'hod123', 'hod')" class="badge badge-warning" style="cursor: pointer; border: none;">HOD ECE</button>
+                <button type="button" onclick="fillDemo('hod_eee', 'hod123', 'hod')" class="badge badge-info" style="cursor: pointer; border: none;">HOD EEE</button>
+                <button type="button" onclick="fillDemo('hod_me', 'hod123', 'hod')" class="badge badge-success" style="cursor: pointer; border: none;">HOD ME</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setRole(role) {
+            document.getElementById('portalRoleInput').value = role;
+            if (role === 'admin') {
+                document.getElementById('tabAdmin').classList.add('active');
+                document.getElementById('tabHOD').classList.remove('active');
+            } else {
+                document.getElementById('tabHOD').classList.add('active');
+                document.getElementById('tabAdmin').classList.remove('active');
+            }
+        }
+
+        function fillDemo(user, pass, role) {
+            setRole(role);
+            document.getElementById('usernameInput').value = user;
+            document.getElementById('passwordInput').value = pass;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Incident History | Sentinel AI{% endblock %}
+{% block page_title %}Surveillance Event Logging & Incident Archive{% endblock %}
+{% block page_subtitle %}Search, filter, view captured evidence, and update status of logged violence events{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Bar -->
+<div class="glass-panel" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+    <form action="{{ url_for('incident_history') }}" method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        {% if session.get('role') == 'admin' %}
+        <div style="flex: 1; min-width: 180px;">
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Department</label>
+            <select name="department" class="form-control" style="margin-bottom: 0; padding: 0.5rem;">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.name }}" {% if request.args.get('department') == dept.name %}selected{% endif %}>{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div style="flex: 1; min-width: 140px;">
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Class / Section</label>
+            <input type="text" name="class_section" class="form-control" placeholder="e.g. CS-A" value="{{ request.args.get('class_section', '') }}" style="margin-bottom: 0; padding: 0.5rem;">
+        </div>
+
+        <div style="flex: 1; min-width: 140px;">
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Alert Status</label>
+            <select name="status" class="form-control" style="margin-bottom: 0; padding: 0.5rem;">
+                <option value="">All Statuses</option>
+                <option value="Alert Active" {% if request.args.get('status') == 'Alert Active' %}selected{% endif %}>Alert Active</option>
+                <option value="Acknowledged" {% if request.args.get('status') == 'Acknowledged' %}selected{% endif %}>Acknowledged</option>
+                <option value="Under Investigation" {% if request.args.get('status') == 'Under Investigation' %}selected{% endif %}>Under Investigation</option>
+                <option value="Resolved" {% if request.args.get('status') == 'Resolved' %}selected{% endif %}>Resolved</option>
+                <option value="False Alarm" {% if request.args.get('status') == 'False Alarm' %}selected{% endif %}>False Alarm</option>
+            </select>
+        </div>
+
+        <div style="display: flex; align-items: flex-end; gap: 0.5rem; margin-top: auto;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.55rem 1rem;">
+                <i class="bi bi-filter"></i> Apply Filter
+            </button>
+            <a href="{{ url_for('incident_history') }}" class="btn btn-secondary" style="padding: 0.55rem 1rem;">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Incident Table -->
+<div class="glass-panel" style="padding: 1.5rem;">
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Code & Date</th>
+                    <th>Dept & Class</th>
+                    <th>Camera / Location</th>
+                    <th>AI Confidence</th>
+                    <th>Evidence Image</th>
+                    <th>Status & Reviewer</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inc in incidents %}
+                <tr>
+                    <td>
+                        <strong style="color: #fff; font-size: 0.95rem;">{{ inc.incident_code }}</strong><br>
+                        <small style="color: var(--text-muted);">{{ inc.timestamp }}</small>
+                    </td>
+                    <td>
+                        <span>{{ inc.department }}</span><br>
+                        <span class="badge badge-info">{{ inc.class_section }}</span>
+                    </td>
+                    <td>
+                        <strong style="color: #fff;">{{ inc.camera_id }}</strong><br>
+                        <small style="color: var(--text-muted);">{{ inc.location }}</small>
+                    </td>
+                    <td>
+                        <strong style="color: var(--color-danger); font-size: 1.1rem;">{{ inc.confidence_score }}%</strong>
+                    </td>
+                    <td>
+                        <img src="{{ inc.evidence_image }}" alt="Evidence Frame" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--glass-border);">
+                    </td>
+                    <td>
+                        {% if inc.status == 'Alert Active' %}
+                        <span class="badge badge-danger"><i class="bi bi-bell-fill"></i> Active</span>
+                        {% elif inc.status == 'Acknowledged' %}
+                        <span class="badge badge-warning">Acknowledged</span>
+                        {% else %}
+                        <span class="badge badge-success">{{ inc.status }}</span>
+                        {% endif %}
+                        <br>
+                        <small style="color: var(--text-dim);">By: {{ inc.acknowledged_by or 'System' }}</small>
+                        {% if inc.notes %}
+                        <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem; font-style: italic; max-width: 200px;">
+                            &ldquo;{{ inc.notes }}&rdquo;
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form action="{{ url_for('acknowledge_incident', incident_id=inc.id) }}" method="POST" style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <div style="display: flex; gap: 0.3rem;">
+                                <select name="status" class="form-control" style="padding: 0.3rem; margin-bottom: 0; font-size: 0.75rem; width: auto;">
+                                    <option value="Acknowledged" {% if inc.status=='Acknowledged' %}selected{% endif %}>Acknowledge</option>
+                                    <option value="Under Investigation" {% if inc.status=='Under Investigation' %}selected{% endif %}>Investigate</option>
+                                    <option value="Resolved" {% if inc.status=='Resolved' %}selected{% endif %}>Resolve</option>
+                                    <option value="False Alarm" {% if inc.status=='False Alarm' %}selected{% endif %}>False Alarm</option>
+                                </select>
+                                <button type="submit" class="btn btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.75rem;">Update</button>
+                            </div>
+                            <input type="text" name="notes" placeholder="Add note (optional)" style="background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 4px; padding: 0.2rem 0.4rem; color: #fff; font-size: 0.7rem; outline: none;">
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">No incident records match the specified filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

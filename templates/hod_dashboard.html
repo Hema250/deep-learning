@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}HOD Portal | {{ department_name }}{% endblock %}
+{% block page_title %}{{ department_name }} Surveillance Portal{% endblock %}
+{% block page_subtitle %}HOD Department Command & 4-Class Surveillance Management{% endblock %}
+
+{% block content %}
+<!-- HOD Header Banner -->
+<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(139, 92, 246, 0.1)); border-color: var(--glass-border-glow);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="badge badge-info" style="margin-bottom: 0.5rem;">AUTHORITY ROLE: {% if session.get('role') == 'admin' %}CHIEF ADMIN (INSPECTING HOD PORTAL){% else %}DEPARTMENT HOD{% endif %}</span>
+            <h2 style="font-size: 1.6rem; color: #fff;">{{ department_name }}</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">
+                Authorized Official: <strong>{{ session.get('full_name') }}</strong> &bull; Department Cameras & 4 Assigned Sections
+            </p>
+            {% if session.get('role') == 'admin' and departments %}
+            <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="font-size: 0.75rem; color: var(--text-dim);">Switch Department View:</span>
+                {% for d in departments %}
+                <a href="{{ url_for('hod_dashboard', dept=d.name) }}" class="badge {% if d.name == department_name %}badge-danger{% else %}badge-info{% endif %}" style="text-decoration: none;">
+                    {{ d.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <div style="text-align: right;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">ACTIVE ALERTS</span>
+                <h3 style="color: var(--color-danger); font-size: 1.8rem;">{{ active_dept_alerts }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4 Assigned Classes Section Cards -->
+<h3 id="assignedSections" style="font-size: 1.2rem; color: #fff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+    <i class="bi bi-mortarboard" style="color: var(--color-primary);"></i> Assigned Department Sections (4 Classes)
+</h3>
+
+<div class="metrics-grid" style="margin-bottom: 2rem;">
+    {% for cls in assigned_classes %}
+    {% set count = class_counts.get(cls.strip(), 0) %}
+    <div class="glass-panel metric-card" style="border-top: 3px solid {% if count > 0 %}var(--color-danger){% else %}var(--color-success){% endif %};">
+        <div class="metric-icon {% if count > 0 %}red{% else %}green{% endif %}">
+            <i class="bi bi-door-open"></i>
+        </div>
+        <div class="metric-data">
+            <h3>Section {{ cls.strip() }}</h3>
+            <p>{% if count > 0 %}<strong style="color: var(--color-danger);">{{ count }} Alert Flagged</strong>{% else %}<span style="color: var(--color-success);">Normal Activity</span>{% endif %}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Department Cameras Grid -->
+<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+    <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="bi bi-camera-video-fill" style="color: var(--color-primary);"></i> Department CCTV Cameras
+    </h3>
+
+    <div class="cctv-grid">
+        {% for cam in cameras %}
+        <div class="glass-panel cctv-card">
+            <div class="cctv-header">
+                <span style="font-weight: 600; font-size: 0.9rem; color: #fff;">{{ cam.camera_id }} ({{ cam.name }})</span>
+                <span class="badge badge-info">{{ cam.class_section }}</span>
+            </div>
+            <div class="cctv-feed">
+                <img src="{{ url_for('video_feed', camera_id=cam.camera_id) }}" alt="Live Stream">
+            </div>
+            <div class="cctv-footer">
+                <span>{{ cam.location }}</span>
+                <button onclick="triggerDemoAlert('{{ cam.camera_id }}')" class="badge badge-danger" style="cursor: pointer; border: none;">Simulate Alert</button>
+            </div>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); padding: 1rem;">No cameras assigned to this department yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Department Incidents & Acknowledgement Table -->
+<div class="glass-panel" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="bi bi-shield-exclamation" style="color: var(--color-warning);"></i> Department Violence Alerts & Action Center
+    </h3>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Code & Time</th>
+                    <th>Class / Section</th>
+                    <th>Camera Location</th>
+                    <th>Confidence</th>
+                    <th>Evidence Frame</th>
+                    <th>Status</th>
+                    <th>HOD Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inc in incidents %}
+                <tr>
+                    <td>
+                        <strong style="color: #fff;">{{ inc.incident_code }}</strong><br>
+                        <small style="color: var(--text-dim);">{{ inc.timestamp }}</small>
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ inc.class_section }}</span>
+                    </td>
+                    <td>
+                        <span style="font-size: 0.85rem;">{{ inc.location }}</span><br>
+                        <small style="color: var(--text-muted);">{{ inc.camera_id }}</small>
+                    </td>
+                    <td>
+                        <strong style="color: var(--color-danger); font-size: 1rem;">{{ inc.confidence_score }}%</strong>
+                    </td>
+                    <td>
+                        <img src="{{ inc.evidence_image }}" alt="Evidence" style="width: 70px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid var(--glass-border);">
+                    </td>
+                    <td>
+                        {% if inc.status == 'Alert Active' %}
+                        <span class="badge badge-danger"><i class="bi bi-bell-fill"></i> Alert Active</span>
+                        {% elif inc.status == 'Acknowledged' %}
+                        <span class="badge badge-warning">Acknowledged</span>
+                        {% else %}
+                        <span class="badge badge-success">{{ inc.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form action="{{ url_for('acknowledge_incident', incident_id=inc.id) }}" method="POST" style="display: flex; gap: 0.4rem;">
+                            <select name="status" class="form-control" style="padding: 0.3rem 0.5rem; margin-bottom: 0; font-size: 0.75rem; width: auto;">
+                                <option value="Acknowledged" {% if inc.status=='Acknowledged' %}selected{% endif %}>Acknowledge</option>
+                                <option value="Under Investigation" {% if inc.status=='Under Investigation' %}selected{% endif %}>Investigate</option>
+                                <option value="Resolved" {% if inc.status=='Resolved' %}selected{% endif %}>Resolve</option>
+                                <option value="False Alarm" {% if inc.status=='False Alarm' %}selected{% endif %}>False Alarm</option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No incidents logged for {{ department_name }}.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

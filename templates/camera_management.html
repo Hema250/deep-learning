@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Camera Management | Main Admin{% endblock %}
+{% block page_title %}College Camera & Zone Management{% endblock %}
+{% block page_subtitle %}Add, update, assign CCTV nodes to departments & 4 class sections{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 1.5rem;">
+    <!-- Add Camera Form -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 1.25rem;">
+            <i class="bi bi-camera" style="color: var(--color-primary);"></i> Add CCTV Node
+        </h3>
+
+        <form action="{{ url_for('camera_management') }}" method="POST">
+            <input type="hidden" name="action" value="add">
+
+            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Camera ID</label>
+            <input type="text" name="camera_id" class="form-control" placeholder="e.g. CAM-CS05" required>
+
+            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Camera Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. AI Research Hall Corridor" required>
+
+            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Department</label>
+            <select name="department" class="form-control" required>
+                {% for dept in departments %}
+                <option value="{{ dept.name }}">{{ dept.name }} ({{ dept.code }})</option>
+                {% endfor %}
+                <option value="Admin">General Administration</option>
+            </select>
+
+            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Class Section / Zone</label>
+            <input type="text" name="class_section" class="form-control" placeholder="e.g. CS-A, ME-B, Hallway" required>
+
+            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Physical Location Description</label>
+            <input type="text" name="location" class="form-control" placeholder="e.g. Block A, Floor 2" required>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="font-size: 0.7rem; color: var(--text-dim);">3D Pos X</label>
+                    <input type="number" step="0.5" name="pos_x" class="form-control" value="0.0">
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; color: var(--text-dim);">3D Pos Y</label>
+                    <input type="number" step="0.5" name="pos_y" class="form-control" value="2.0">
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; color: var(--text-dim);">3D Pos Z</label>
+                    <input type="number" step="0.5" name="pos_z" class="form-control" value="0.0">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                <i class="bi bi-plus-circle"></i> Register Camera Node
+            </button>
+        </form>
+    </div>
+
+    <!-- Camera List Table -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 1.25rem;">
+            Registered College CCTV Surveillance Network
+        </h3>
+
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Camera ID & Name</th>
+                        <th>Department</th>
+                        <th>Class Section</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cam in cameras %}
+                    <tr>
+                        <td>
+                            <strong style="color: #fff;">{{ cam.camera_id }}</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">{{ cam.name }}</span>
+                        </td>
+                        <td>{{ cam.department }}</td>
+                        <td><span class="badge badge-info">{{ cam.class_section }}</span></td>
+                        <td><span style="font-size: 0.8rem;">{{ cam.location }}</span></td>
+                        <td>
+                            {% if cam.status == 'Active' %}
+                            <span class="badge badge-success">Active</span>
+                            {% else %}
+                            <span class="badge badge-danger">Offline</span>
+                            {% endif %}
+                        </td>
+                        <td style="display: flex; gap: 0.4rem;">
+                            <form action="{{ url_for('camera_management') }}" method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="toggle_status">
+                                <input type="hidden" name="camera_id" value="{{ cam.camera_id }}">
+                                <input type="hidden" name="current_status" value="{{ cam.status }}">
+                                <button type="submit" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
+                                    Toggle
+                                </button>
+                            </form>
+                            <form action="{{ url_for('camera_management') }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete camera {{ cam.camera_id }}?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="camera_id" value="{{ cam.camera_id }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

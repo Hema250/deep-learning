@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Surveillance Reports | Sentinel AI{% endblock %}
+{% block page_title %}College Campus Security & Incident Audit Reports{% endblock %}
+{% block page_subtitle %}Generate official security reports for college departments, classes, and executive security board{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h3 style="font-size: 1.15rem; color: #fff;">Campus Incident Report Generator</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Report Period: Current Academic Term &bull; Scope: {{ session.get('department', 'College-Wide') }}</p>
+    </div>
+    <div>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="bi bi-printer"></i> Print Official Audit Report
+        </button>
+    </div>
+</div>
+
+<div class="glass-panel" style="padding: 2rem; background: rgba(17, 24, 39, 0.9);">
+    <div style="border-bottom: 2px solid var(--glass-border); padding-bottom: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h1 style="font-size: 1.8rem; color: #fff;">SENTINEL AI SURVEILLANCE REPORT</h1>
+            <p style="color: var(--color-primary); font-weight: 600; font-size: 0.9rem;">DEEP LEARNING VIOLENCE DETECTION AUDIT</p>
+        </div>
+        <div style="text-align: right; font-size: 0.85rem; color: var(--text-muted);">
+            <p>Generated: <strong>{{ incidents[0].timestamp if incidents else '2026-10-06' }}</strong></p>
+            <p>Issued By: <strong>{{ session.get('full_name') }}</strong></p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Incident Code</th>
+                    <th>Timestamp</th>
+                    <th>Department</th>
+                    <th>Class Section</th>
+                    <th>Location</th>
+                    <th>AI Confidence</th>
+                    <th>Resolution Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inc in incidents %}
+                <tr>
+                    <td><strong>{{ inc.incident_code }}</strong></td>
+                    <td>{{ inc.timestamp }}</td>
+                    <td>{{ inc.department }}</td>
+                    <td><span class="badge badge-info">{{ inc.class_section }}</span></td>
+                    <td>{{ inc.location }}</td>
+                    <td><strong style="color: var(--color-danger);">{{ inc.confidence_score }}%</strong></td>
+                    <td>{{ inc.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No incidents recorded in audit log.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

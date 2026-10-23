@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Live CCTV Grid | Sentinel AI{% endblock %}
+{% block page_title %}Real-Time Live Surveillance Grid{% endblock %}
+{% block page_subtitle %}Frame sequence processing & spatial-temporal anomaly inference on active CCTV streams{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="padding: 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h3 style="font-size: 1.1rem; color: #fff;">Surveillance Stream Feed Controls</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Real-time stream resolution 112x112 sequence window inference @ 15 FPS</p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button onclick="filterCameras('ALL', this)" class="btn btn-primary filter-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">All Cameras</button>
+        {% for dept in departments %}
+        <button onclick="filterCameras('{{ dept.name }}', this)" class="btn btn-secondary filter-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">{{ dept.name }}</button>
+        {% endfor %}
+        <button onclick="filterCameras('Admin', this)" class="btn btn-secondary filter-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Admin Plaza</button>
+    </div>
+</div>
+
+<div class="cctv-grid" id="cctvGridContainer">
+    {% for cam in cameras %}
+    <div class="glass-panel cctv-card camera-item" data-dept="{{ cam.department }}">
+        <div class="cctv-header">
+            <div>
+                <span style="font-weight: 600; font-size: 0.9rem; color: #fff;">{{ cam.camera_id }}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">({{ cam.name }})</span>
+            </div>
+            <span class="badge badge-info">{{ cam.class_section }}</span>
+        </div>
+        <div class="cctv-feed">
+            <img src="{{ url_for('video_feed', camera_id=cam.camera_id) }}" alt="Live Feed">
+        </div>
+        <div class="cctv-footer">
+            <span>{{ cam.department }}</span>
+            <button onclick="triggerDemoAlert('{{ cam.camera_id }}')" class="badge badge-danger" style="cursor: pointer; border: none;">Test Alert</button>
+        </div>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted); padding: 2rem;">No active camera feeds found.</p>
+    {% endfor %}
+</div>
+
+<script>
+    function filterCameras(dept, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-secondary');
+        });
+        if (btn) {
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+        }
+
+        const items = document.querySelectorAll('.camera-item');
+        items.forEach(item => {
+            const itemDept = item.getAttribute('data-dept');
+            if (dept === 'ALL' || itemDept === dept) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

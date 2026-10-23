@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}3D Campus Map | Sentinel AI{% endblock %}
+{% block page_title %}Interactive 3D Campus Surveillance Model{% endblock %}
+{% block page_subtitle %}Real-time 3D spatial mapping of college CCTV nodes, department blocks, and active threat markers{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h3 style="font-size: 1.2rem; color: #fff;">College Campus 3D Node Grid & Surroundings</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                <i class="bi bi-mouse"></i> Click & Drag to Orbit | Scroll to Zoom | Click any Camera Pin to view live feed
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary" onclick="flyToPreset('overview')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-arrows-fullscreen"></i> Campus Overview
+            </button>
+            <button class="btn btn-secondary" onclick="flyToPreset('admin')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-building"></i> Admin Plaza
+            </button>
+            <button class="btn btn-secondary" onclick="flyToPreset('aids')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-cpu"></i> AI & DS Block
+            </button>
+            <button class="btn btn-secondary" onclick="flyToPreset('cse')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-laptop"></i> CSE Block
+            </button>
+            <button class="btn btn-secondary" onclick="flyToPreset('ece_eee')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-lightning-charge"></i> ECE / EEE
+            </button>
+            <button class="btn btn-secondary" onclick="flyToPreset('me')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-gear-wide-connected"></i> Mech Wing
+            </button>
+        </div>
+    </div>
+
+    <!-- 3D Canvas Viewport Container -->
+    <div id="campus3DContainer" style="width: 100%; height: 600px; border-radius: var(--radius-md); overflow: hidden; position: relative; border: 1px solid var(--glass-border); background: #070b14;">
+        <!-- Hover Tooltip -->
+        <div id="cam3DTooltip" style="display: none; position: absolute; pointer-events: none; z-index: 100; background: rgba(13, 17, 28, 0.95); border: 1px solid var(--color-primary); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.8rem; box-shadow: 0 4px 20px rgba(0,0,0,0.6); backdrop-filter: blur(8px);"></div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/campus_3d.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const camerasData = {{ cameras | tojson }};
+        const incidentsData = {{ incidents | tojson }};
+        init3DCampusMap(camerasData, incidentsData);
+    });
+</script>
+{% endblock %}

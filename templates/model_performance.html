@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}CNN-LSTM Model Performance | Sentinel AI{% endblock %}
+{% block page_title %}CNN-LSTM Model Architecture & Performance Evaluation{% endblock %}
+{% block page_subtitle %}Quantitative evaluation metrics, confusion matrix, spatial-temporal architecture specs, and training history curves{% endblock %}
+
+{% block content %}
+<!-- Metric Cards -->
+<div class="metrics-grid">
+    <div class="glass-panel metric-card">
+        <div class="metric-icon cyan">
+            <i class="bi bi-award"></i>
+        </div>
+        <div class="metric-data">
+            <h3>{{ metrics.accuracy }}%</h3>
+            <p>Overall Test Accuracy</p>
+        </div>
+    </div>
+
+    <div class="glass-panel metric-card">
+        <div class="metric-icon green">
+            <i class="bi bi-bullseye"></i>
+        </div>
+        <div class="metric-data">
+            <h3>{{ metrics.precision }}</h3>
+            <p>Precision Metric</p>
+        </div>
+    </div>
+
+    <div class="glass-panel metric-card">
+        <div class="metric-icon purple">
+            <i class="bi bi-search-heart"></i>
+        </div>
+        <div class="metric-data">
+            <h3>{{ metrics.recall }}</h3>
+            <p>Recall Sensitivity</p>
+        </div>
+    </div>
+
+    <div class="glass-panel metric-card">
+        <div class="metric-icon amber">
+            <i class="bi bi-bar-chart-line"></i>
+        </div>
+        <div class="metric-data">
+            <h3>{{ metrics.f1_score }}</h3>
+            <p>F1-Score Harmonic Mean</p>
+        </div>
+    </div>
+</div>
+
+<!-- Architecture Pipeline Visualizer -->
+<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+    <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="bi bi-diagram-2" style="color: var(--color-primary);"></i> Hybrid CNN-LSTM Pipeline Diagram
+    </h3>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center;">
+        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+            <div style="font-size: 1.8rem; color: var(--color-primary); margin-bottom: 0.5rem;"><i class="bi bi-camera-reels"></i></div>
+            <h4 style="font-size: 0.95rem; color: #fff;">1. Video Input Sequence</h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">16 consecutive frames (112x112x3), CLAHE contrast enhanced</p>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+            <div style="font-size: 1.8rem; color: var(--color-secondary); margin-bottom: 0.5rem;"><i class="bi bi-layers-half"></i></div>
+            <h4 style="font-size: 0.95rem; color: #fff;">2. CNN Spatial Extraction</h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">TimeDistributed Conv2D / MobileNetV2 spatial feature vector per frame</p>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+            <div style="font-size: 1.8rem; color: var(--color-warning); margin-bottom: 0.5rem;"><i class="bi bi-activity"></i></div>
+            <h4 style="font-size: 0.95rem; color: #fff;">3. LSTM Temporal Learning</h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Bidirectional Recurrent LSTM (64 units) temporal dynamics modeling</p>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+            <div style="font-size: 1.8rem; color: var(--color-danger); margin-bottom: 0.5rem;"><i class="bi bi-shield-check"></i></div>
+            <h4 style="font-size: 0.95rem; color: #fff;">4. Binary Output</h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Sigmoid probability score (Violence vs Non-Violence) + Alert trigger</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- Loss & Accuracy Curves -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 1rem;">Training & Validation Curves</h3>
+        <canvas id="historyChart" style="max-height: 280px;"></canvas>
+    </div>
+
+    <!-- Confusion Matrix -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 1rem;">Test Set Confusion Matrix</h3>
+        <canvas id="confusionMatrixChart" style="max-height: 280px;"></canvas>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const metrics = {{ metrics | tojson }};
+        renderModelMetricsCharts(metrics);
+    });
+</script>
+{% endblock %}

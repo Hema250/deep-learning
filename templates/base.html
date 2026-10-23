@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SENTINEL AI - Campus Violence Detection{% endblock %}</title>
+    <!-- Google Fonts & Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Three.js & OrbitControls CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Custom Glassmorphism Styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div class="brand-text">
+                    <h3>SENTINEL AI</h3>
+                    <span>CAMPUS SURVEILLANCE</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                {% if session.get('role') == 'admin' %}
+                <!-- MAIN ADMIN EXCLUSIVE MENU -->
+                <div class="nav-label">Main Admin Portal</div>
+                
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> <span>Main Admin Hub</span>
+                </a>
+
+                <a href="{{ url_for('camera_management') }}" class="nav-link {% if request.endpoint == 'camera_management' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> <span>Camera Manager</span>
+                </a>
+
+                <a href="{{ url_for('live_monitoring') }}" class="nav-link {% if request.endpoint == 'live_monitoring' %}active{% endif %}">
+                    <i class="bi bi-camera-video-fill"></i> <span>College CCTV Grid</span>
+                </a>
+
+                <a href="{{ url_for('campus_3d_view') }}" class="nav-link {% if request.endpoint == 'campus_3d_view' %}active{% endif %}">
+                    <i class="bi bi-box-seam"></i> <span>3D Campus Map</span>
+                </a>
+
+                <a href="{{ url_for('hod_dashboard') }}" class="nav-link {% if request.endpoint == 'hod_dashboard' %}active{% endif %}">
+                    <i class="bi bi-building-fill"></i> <span>HOD Dept Inspector</span>
+                </a>
+
+                <div class="nav-label" style="margin-top: 1.25rem;">AI Diagnostics & Audits</div>
+
+                <a href="{{ url_for('video_analysis') }}" class="nav-link {% if request.endpoint == 'video_analysis' %}active{% endif %}">
+                    <i class="bi bi-cpu-fill"></i> <span>Video AI Analysis</span>
+                </a>
+
+                <a href="{{ url_for('incident_history') }}" class="nav-link {% if request.endpoint == 'incident_history' %}active{% endif %}">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <span>College Incident Logs</span>
+                </a>
+
+                <a href="{{ url_for('model_performance') }}" class="nav-link {% if request.endpoint == 'model_performance' %}active{% endif %}">
+                    <i class="bi bi-graph-up-arrow"></i> <span>CNN-LSTM Metrics</span>
+                </a>
+
+                <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}">
+                    <i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Security Audit Reports</span>
+                </a>
+
+                {% else %}
+                <!-- HOD AUTHORITY EXCLUSIVE MENU -->
+                <div class="nav-label">HOD Portal ({{ session.get('department') }})</div>
+
+                <a href="{{ url_for('hod_dashboard') }}" class="nav-link {% if request.endpoint == 'hod_dashboard' %}active{% endif %}">
+                    <i class="bi bi-building-fill"></i> <span>My Dept Dashboard</span>
+                </a>
+
+                <a href="{{ url_for('hod_dashboard') }}#assignedSections" class="nav-link">
+                    <i class="bi bi-door-open-fill"></i> <span>My 4 Class Sections</span>
+                </a>
+
+                <a href="{{ url_for('live_monitoring') }}" class="nav-link {% if request.endpoint == 'live_monitoring' %}active{% endif %}">
+                    <i class="bi bi-camera-video-fill"></i> <span>Dept CCTV Cameras</span>
+                </a>
+
+                <a href="{{ url_for('campus_3d_view') }}" class="nav-link {% if request.endpoint == 'campus_3d_view' %}active{% endif %}">
+                    <i class="bi bi-box-seam"></i> <span>Dept 3D Map View</span>
+                </a>
+
+                <div class="nav-label" style="margin-top: 1.25rem;">Department Action Center</div>
+
+                <a href="{{ url_for('incident_history') }}" class="nav-link {% if request.endpoint == 'incident_history' %}active{% endif %}">
+                    <i class="bi bi-shield-exclamation"></i> <span>Dept Incident Action</span>
+                </a>
+
+                <a href="{{ url_for('video_analysis') }}" class="nav-link {% if request.endpoint == 'video_analysis' %}active{% endif %}">
+                    <i class="bi bi-upload"></i> <span>Upload Video AI</span>
+                </a>
+
+                <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}">
+                    <i class="bi bi-file-earmark-text-fill"></i> <span>Dept Audit Report</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <h4>{{ session.get('full_name', 'Authorized User') }}</h4>
+                    <p>{{ session.get('role', 'User') | upper }} &bull; {{ session.get('department', 'College') }}</p>
+                </div>
+                <a href="{{ url_for('logout') }}" title="Secure Logout" style="color: var(--color-danger); font-size: 1.2rem;">
+                    <i class="bi bi-power"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Topbar Header -->
+            <header class="topbar">
+                <div class="page-title">
+                    <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+                    <p>{% block page_subtitle %}SENTINEL AI - Deep Learning CNN-LSTM Campus Surveillance Network{% endblock %}</p>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="live-ticker">
+                        <span class="pulse-dot"></span>
+                        AI MONITOR ACTIVE
+                    </div>
+
+                    <a href="{{ url_for('incident_history') }}" class="btn btn-secondary" style="position: relative;">
+                        <i class="bi bi-bell-fill" style="color: var(--color-warning);"></i> Alerts
+                        <span id="activeAlertsCount" class="badge badge-danger" style="margin-left: 0.3rem;">0</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="glass-panel" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid {% if category=='danger' %}var(--color-danger){% elif category=='success' %}var(--color-success){% else %}var(--color-primary){% endif %}; font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                            <span>{{ message }}</span>
+                            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Page Body -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
